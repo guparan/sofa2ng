@@ -14,11 +14,11 @@ tasks = []
 
 tasks += [["mkdir", "${dstdir}/extlibs", context]]
 tasks += [["mkdir", "${dstdir}/kernel", context]]
-tasks += [["mkdir", "${dstdir}/framework", context]]
+tasks += [["mkdir", "${dstdir}/modules", context]]
 tasks += [["mkdir", "${dstdir}/plugins", context]]
 tasks += [["mkdir", "${dstdir}/applications", context]]
 
 command = {"commands" : tasks}
-   
+
 
 
