@@ -1,27 +1,23 @@
-rm -rf ng/intree/kernel/*
-rm -rf ng/intree/modules/*
+#!/bin/bash
 
-mkdir ng/intree/extlibs
-mkdir ng/intree/plugins
-mkdir ng/intree/packages
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $SCRIPT_DIR
 
 
-sofa2ng/tools/mc.py sofa2ng/recipies/bootstrap-migration.rcpy ./ ng/intree
-sofa2ng/tools/mc.py sofa2ng/recipies/Sofa.Config/Sofa.Config.rcpy ./ ng/intree/kernel
-#sofa2ng/tools/mc.py sofa2ng/recipies/Sofa.Type/Sofa.Type.rcpy ./ ng/kernel
-sofa2ng/tools/mc.py sofa2ng/recipies/Sofa.Component.Utils/Sofa.Component.Utils.rcpy ./ ng/intree/modules
+# ./tools/mc.py recipes/bootstrap-migration.rcpy ../.. ../..
+# ./tools/mc.py recipes/Sofa.Config/Sofa.Config.rcpy ../.. ../../kernel
+#./tools/mc.py recipes/Sofa.Type/Sofa.Type.rcpy ../.. ng/kernel
+./tools/mc.py recipes/Sofa.Component.Utils/Sofa.Component.Utils.rcpy ../.. ../..
 
-#### Prepare kernel
-echo "cmake_minimum_required(VERSION 3.5)" > ng/intree/kernel/CMakeLists.txt
-echo 'set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake")' >> ng/intree/kernel/CMakeLists.txt
-echo 'set(CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}/cmake")' >> ng/intree/kernel/CMakeLists.txt
-echo "add_subdirectory(Sofa.Config)" >> ng/intree/kernel/CMakeLists.txt
-echo "add_subdirectory(Sofa.Config/tests)" >> ng/intree/kernel/CMakeLists.txt
+# #### Prepare kernel
+# echo "cmake_minimum_required(VERSION 3.5)" > ../../kernel/CMakeLists.txt
+# echo 'set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake")' >> ../../kernel/CMakeLists.txt
+# echo 'set(CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}/cmake")' >> ../../kernel/CMakeLists.txt
+# echo "add_subdirectory(Sofa.Config)" >> ../../kernel/CMakeLists.txt
+# echo "add_subdirectory(Sofa.Config/tests)" >> ../../kernel/CMakeLists.txt
 
-#### Prepare modules
-echo "cmake_minimum_required(VERSION 3.5)" > ng/intree/modules/CMakeLists.txt
-echo 'set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake")' >> ng/intree/modules/CMakeLists.txt
-echo 'set(CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}/cmake")' >> ng/intree/modules/CMakeLists.txt
-echo "add_subdirectory(Sofa.Component.Utils)" >> ng/intree/modules/CMakeLists.txt
-
-
+# #### Prepare modules
+# echo "cmake_minimum_required(VERSION 3.5)" > ../../modules/CMakeLists.txt
+# echo 'set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake")' >> ../../modules/CMakeLists.txt
+# echo 'set(CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}/cmake")' >> ../../modules/CMakeLists.txt
+# echo "add_subdirectory(Sofa.Component.Utils)" >> ../../modules/CMakeLists.txt
