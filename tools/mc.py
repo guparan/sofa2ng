@@ -6,7 +6,7 @@ import sr
 
 def lprint(l):
     print(json.dumps(l, indent=4, separators=(',', ':')))
-     
+
 def nameMap(file, context):
     return (context["recipedir"]+"/"+file, context["dstdir"]+"/"+file)
 
@@ -17,42 +17,42 @@ def makeATestContextFrom(context):
     nc["dstdir"] =  nc["package_dir"]+"/src"
     nc["cmake_template"] = "TestCMakeLists.txt.tpl"
     return nc
-                           
+
 def moveCodeAndPatch(filenames, nameMap, forward=None, **kwargs):
     if isinstance(filenames, str):
         filenames = [filename]
-        
+
     #dstpath = package_name+"/src/"+(package_name.lower().replace(".","/"))
     #dstincpath0 = (package_name.lower().replace(".","/"))
-    
+
     #dstincpath = "src/"+(package_name.lower().replace(".","/"))
-    
+
     #if oldheader == None:
     #    oldheader = package_name.upper()
     #oldheader += "_"+name.upper()
-    
+
     #if newheader == None:
     #    newheader = (package_name.upper()+"_"+name.upper()).replace(".","_")
 
     #tasks = []
     #file2property = {".h" : "header_files", ".inl" : "header_files", ".cpp" : "source_files" }
-    #for t in types:    
+    #for t in types:
     #    EXT = t.upper().replace(".","_")
     #    tasks.append(["move", srcpath+"/"+name+t, dstpath+"/"+name+t])
     #    if t in file2property:
     #        tasks.append(["spm", "package", package_name, "property", file2property[t], "add-to", dstincpath+"/"+name+t])
     #    else:
     #        tasks.append(["spm", "package", package_name, "property", "extra_files", "add-to", dstincpath+"/"+name+t])
-    #    
+    #
     #    tasks.append(["rename", package_name, "#include <"+srcincpath+"/"+name+".", "#include <"+dstincpath0+"/"+name+"."])
-    #        
+    #
     #    tasks.append(["fixheader", dstpath+"/"+name+t, oldheader+EXT, newheader+EXT])
     #    if forward != None and t == ".h":
     #        tasks.append(["mkforward", package_name, srcincpath+"/"+name+t, dstincpath0+"/"+name+t, forward])
     #        tasks.append(["spm", "package", package_name, "property", "header_files", "add-to", "deprecated_layout/"+srcincpath+"/"+name+t])
-      
-    tasks = []  
-    
+
+    tasks = []
+
     file2property = {".h" : "header_files", ".inl" : "header_files", ".cpp" : "source_files" }
 
     for filename in filenames:
@@ -61,8 +61,9 @@ def moveCodeAndPatch(filenames, nameMap, forward=None, **kwargs):
        r = os.path.commonprefix([dstfilename+"/", kwargs["package_dir"]+"/"])
        dstrelativefilename = dstfilename[len(r):]
        tasks.append(["move", srcfilename, dstfilename])
+       tasks.append(["rm", srcfilename])
        tasks.append(["spm", "add-to-property", file2property[ext], dstrelativefilename, kwargs])
-         
+
     return tasks
 
 def reorder(tasks):
@@ -73,10 +74,10 @@ def reorder(tasks):
     fix = []
     last = []
     pre = []
-    for i in tasks: 
+    for i in tasks:
         if i[0] in ["mkdir"]:
             mkdir.append(i)
-        elif i[0] in ["move"]:
+        elif i[0] in ["move", "rm"]:
             move.append(i)
         elif i[0] in ["mkconfig"]:
             create.append(i)
@@ -101,13 +102,13 @@ if __name__ == "__main__":
     import runpy
     import os
     if len(sys.argv) != 4:
-        print("Usage: mc recipe <srcpath> <dstpath>") 
+        print("Usage: mc.py <recipe> <srcpath> <dstpath>")
     print("MasterChief is now cooking '"+sys.argv[1]+"' for you.")
     context = {"rootsrcdir" : sys.argv[2] , "rootdstdir": sys.argv[3] }
 
     if not os.path.exists(context["rootdstdir"]):
-        os.makedirs(context["rootdstdir"])    
-    
+        os.makedirs(context["rootdstdir"])
+
     l=runpy.run_path(sys.argv[1], context)
     sr.replayRefactoring(l["command"])
     print("")

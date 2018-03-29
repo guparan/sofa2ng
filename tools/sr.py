@@ -9,8 +9,8 @@ import inspect
 from Cheetah.Template import Template
 
 
-# 
-# sofa-pck-manager add Sofa.Helper.Types 
+#
+# sofa-pck-manager add Sofa.Helper.Types
 
 # Move the files (to git)
 # git mv
@@ -25,7 +25,7 @@ template = """
 #ifndef $INCLUDE_GUARD
 #define $INCLUDE_GUARD
 
-// The content of this file has been refactored and moved to this new location 
+// The content of this file has been refactored and moved to this new location
 // The best practice is now to update your code. By updating the including points
 // as well as the namespace
 $INCLUDE_PATH_FORWARD
@@ -49,11 +49,11 @@ cheetahVarStartToken = autopack::
 #include <sofa/config/sharedlibrary_defines.h>
 
 #ifdef BUILD_TARGET_autopack::CNAME
-    #define SofaTarget 
+    #define SofaTarget
     #define autopack::{CNAME}_API SOFA_EXPORT_DYNAMIC_LIBRARY
 #else
     #define autopack::{CNAME}_API SOFA_IMPORT_DYNAMIC_LIBRARY
-#endif 
+#endif
 
 #endif // autopack::INCLUDE_GUARD
 """
@@ -65,14 +65,14 @@ def toCName(p):
 def toCNS(p):
     ns = ""
     for k in p:
-        v = p[k]      
+        v = p[k]
         if isinstance(v, dict):
             ns += "namespace "+k+" \n"
             ns += "{\n"
-            ns += toCNS(v) 
+            ns += toCNS(v)
             ns += "} // namespace "+k+"\n"
         else:
-            ns += "    "+k + v + "\n"   
+            ns += "    "+k + v + "\n"
     return ns
 
 def configCmd(cmd):
@@ -80,12 +80,12 @@ def configCmd(cmd):
     packagename = cmd[0]
     targetname = "header_files"
     configfile = cmd[1]
-    spm.addToProperty(packagename, targetname, configfile) 
+    spm.addToProperty(packagename, targetname, configfile)
 
     theFile = open(packagename+"/"+configfile, "w")
     templateMap = {
-        "INCLUDE_GUARD" : toCName(packagename+"_"+targetname+"_H"), 
-        "CNAME" : toCName(packagename) 
+        "INCLUDE_GUARD" : toCName(packagename+"_"+targetname+"_H"),
+        "CNAME" : toCName(packagename)
     }
     t = Template(templateConfig, searchList=[templateMap])
     theFile.write(str(t))
@@ -101,12 +101,12 @@ def forwardCmd(cmd):
 
     if not os.path.exists(finalpath):
         os.mkdir(finalpath)
-    
+
     theFile = open(finalpath+"/"+oldpath, "w")
     templateMap = {
         "INCLUDE_GUARD" : toCName(oldpath),
         "INCLUDE_PATH_FORWARD" : "#include <"+newpath+">",
-        "NS_FORWARD" : toCNS(nsmap) 
+        "NS_FORWARD" : toCNS(nsmap)
     }
     t = Template(template, searchList=[templateMap])
     theFile.write(str(t))
@@ -117,25 +117,31 @@ def branchCmd(cmd):
 def mkdirCmd(dirname, **kwargs):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
-    print(" - make dir " + dirname)
-    
+    # print(" - make dir " + dirname)
+
 def commitCmd(cmd):
     print(" - commit: git" + str(cmd))
 
 def moveCmd(sourcefile, destfile, **kwargs):
-    print(" - move: " + str(sourcefile))
+    # print(" - move: " + str(sourcefile))
     shutil.copy(sourcefile, destfile)
+
+def rmCmd(path, **kwargs):
+    try:
+        os.remove(path)
+    except OSError:
+        os.rmdir(path)
 
 def fixheaderCmd(cmd):
     print(" - fixheader: " + str(cmd))
-    path = cmd[0] 
+    path = cmd[0]
     tmp = open(path+"_tmp","w")
 
     for line in open(path, "r"):
         iline = re.sub(cmd[1], cmd[2], line)
         if iline != line:
             print("- fix "+path+": "+iline),
-        tmp.write(iline)        
+        tmp.write(iline)
     tmp.close()
     shutil.copyfile(path+"_tmp", path)
     os.remove(path+"_tmp")
@@ -148,32 +154,32 @@ def decodeArgs(options, args, context):
     kwargs = {}
     for o in options:
         if o in context:
-             kwargs[o] = context[o]        
+             kwargs[o] = context[o]
         else:
             print("ARGS: ["+str(args)+"]")
-            if i < len(args):  
+            if i < len(args):
                 kwargs[o] = args[i]
                 i+=1
             else:
                 kwargs[0] = None
     return (args[i:], kwargs)
-                
 
-def spmCmd(command=None, *args, **kwargs):  
-  
+
+def spmCmd(command=None, *args, **kwargs):
+
     if command == "add-to-property":
-        spm.addToProperty(*args, **kwargs)           
+        spm.addToProperty(*args, **kwargs)
     elif command == "add-property":
-        spm.addProperty(*args, **kwargs) 
+        spm.addProperty(*args, **kwargs)
     elif command == "set-property":
-        spm.setProperty(*args, **kwargs)              
+        spm.setProperty(*args, **kwargs)
     elif command == "init":
         spm.initPackage(**kwargs)
     elif command == "generate-cmakelists":
         spm.generateCMakeLists(**kwargs)
     else:
         print("Invalid spm cmd:" +str(command))
-            
+
 def replacetextCmd(root_dir, str_src, str_dst, **kwargs):
     if os.path.isdir(root_dir):
         for (rootpath, dirname, filenames) in os.walk(root_dir):
@@ -185,18 +191,18 @@ def replacetextCmd(root_dir, str_src, str_dst, **kwargs):
                     iline = re.sub(str_src, str_dst, line)
                     if iline != line:
                         print(" - fix "+path+": "+iline),
-                    tmp.write(iline)    
+                    tmp.write(iline)
                 tmp.close()
                 shutil.copyfile(path+"_tmp", path)
                 os.remove(path+"_tmp")
     else:
-        path = root_dir 
+        path = root_dir
         tmp = open(path+"_tmp","w")
         for line in open(path, "r"):
             iline = re.sub(str_src, str_dst, line)
             if iline != line:
                 print(" - fix "+path+": "+iline),
-            tmp.write(iline)        
+            tmp.write(iline)
         tmp.close()
         shutil.copyfile(path+"_tmp", path)
         os.remove(path+"_tmp")
@@ -207,59 +213,61 @@ def expand(l, context):
     elif isinstance(l, list):
         nargs = []
         for a in l:
-            nargs.append(expand(a,context))               
+            nargs.append(expand(a,context))
         return nargs
     elif isinstance(l, dict):
         nargs = {}
         for k in l:
-            nargs[expand(k, context)] = expand(l[k],context) 
+            nargs[expand(k, context)] = expand(l[k],context)
         return nargs
     return l
 
 def replayCmd(cmd, *args, **kwargs):
     if cmd == "replacetext":
-        replacetextCmd(*args, **kwargs)    
+        replacetextCmd(*args, **kwargs)
     elif cmd == "move":
-        moveCmd(*args, **kwargs)    
+        moveCmd(*args, **kwargs)
+    elif cmd == "rm":
+        rmCmd(*args, **kwargs)
     elif cmd == "mkdir":
-        mkdirCmd(*args, **kwargs)    
+        mkdirCmd(*args, **kwargs)
     elif cmd == "spm":
-        spmCmd(*args, **kwargs)    
+        spmCmd(*args, **kwargs)
     elif cmd == "commit":
-        commitCmd(*args, **kwargs) 
+        commitCmd(*args, **kwargs)
     elif cmd == "branch":
-        branchCmd(*args, **kwargs) 
+        branchCmd(*args, **kwargs)
     elif cmd == "fixheader":
-        fixheaderCmd(*args, **kwargs)     
+        fixheaderCmd(*args, **kwargs)
     elif cmd == "mkforward":
-        forwardCmd(*args, **kwargs) 
+        forwardCmd(*args, **kwargs)
     elif cmd == "mkconfig":
-        configCmd(*args, **kwargs)  
+        configCmd(*args, **kwargs)
     else:
         print("Invalid commands: "+str(cmd))
-        
+
 def replayRefactoring(actions):
     if isinstance(actions, str):
         actions = json.loads( open(filename).read() )
-        
+
     actions = actions["commands"]
     for cmd in actions:
         command = cmd[0]
         args = []
         context = {}
-        
+
         if len(cmd) != 1:
             if isinstance(cmd[-1], dict):
                 args = cmd[1:-1]
-                context = cmd[-1] 
+                context = cmd[-1]
             else:
                 args = cmd[1:]
-                
+
         args = expand(args, context)
-        
+
         print(repr(command) + " " + repr(args))
-                            
-        replayCmd(command, *args, **context)    
+
+        replayCmd(command, *args, **context)
 #import sys
-#replayRefactoring(sys.argv[1])    
+#replayRefactoring(sys.argv[1])
 
