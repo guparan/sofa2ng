@@ -73,19 +73,23 @@ def toCNS(p):
             ns += "    " + k + v + "\n"
     return ns
 
-def configCmd(cmd):
+def mkconfigCmd(cmd):
     print(" - config: " + str(cmd))
-    packagename = cmd[0]
+    package_name = cmd[0]
     targetname = "header_files"
     configfile = cmd[1]
-    spm.addToProperty(packagename, targetname, configfile)
+    config_template_cmake = TEMPLATES_DIR + "/config/" + "config.template.cmake.in"
+    config_template_h = TEMPLATES_DIR + "/config/" + "config.template.h"
+    config_template_cpp = TEMPLATES_DIR + "/config/" + "config.template.cpp"
+    
+    # spm.addToProperty(package_name, targetname, configfile)
 
-    theFile = open(packagename+"/"+configfile, "w")
+    theFile = open(package_name + "/" + configfile, "w")
     templateMap = {
-        "INCLUDE_GUARD" : toCName(packagename+"_"+targetname+"_H"),
-        "CNAME" : toCName(packagename)
+        "INCLUDE_GUARD" : toCName(package_name + "_" + targetname + "_H"),
+        "CNAME" : toCName(package_name)
     }
-    t = Template(templateConfig, searchList=[templateMap])
+    t = Template(open(template_location).read(), searchList=[templateMap])
     theFile.write(str(t))
 
 
@@ -179,6 +183,8 @@ def spmCmd(command=None, *args, **kwargs):
         spm.initPackage(**kwargs)
     elif command == "generate-cmakelists":
         spm.generateCMakeLists(**kwargs)
+    elif command == "generate-configfiles":
+        spm.generateConfigFiles(**kwargs)
     else:
         print("Invalid spm cmd:" +str(command))
 

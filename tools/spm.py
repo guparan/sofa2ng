@@ -16,6 +16,7 @@ emptypackage = {
         "extra_files" : []
 }
 
+
 def toLine(l):
     s=""
     for i in l:
@@ -52,6 +53,32 @@ def generateCMakeLists(package_name, package_dir=None, cmake_template="CMakeList
     theFile.write(str(t))
 
 
+def generateConfigFiles(package_name, package_dir=None, **kwargs):
+    print("   - generateConfigFiles: " + str(package_name))
+    # package_name = cmd[0]
+    # targetname = "header_files"
+    # configfile = cmd[1]
+    config_dir = kwargs["package_dir_config"]
+    config_template_cmake = TEMPLATES_DIR + "/config/" + "config.template.cmake.in"
+    config_template_h = TEMPLATES_DIR + "/config/" + "config.template.h"
+    config_template_cpp = TEMPLATES_DIR + "/config/" + "config.template.cpp"
+    
+    context = loadPackage(package_name, package_dir=package_dir)
+    
+    # Generate config/PackageName.cmake.in
+    theFile = open(config_dir + "/" + package_name + ".cmake.in", "w+")
+    t = Template( open(config_template_cmake).read(), searchList=[context] )
+    theFile.write(str(t))
+    
+    # Generate config/PackageName.h
+    theFile = open(config_dir + "/" + package_name + ".h", "w+")
+    t = Template( open(config_template_h).read(), searchList=[context] )
+    theFile.write(str(t))
+    
+    # Generate config/PackageName.cpp
+    theFile = open(config_dir + "/" + package_name + ".cpp", "w+")
+    t = Template( open(config_template_cpp).read(), searchList=[context] )
+    theFile.write(str(t))
 
 
 def loadSpm(spmfilename):
