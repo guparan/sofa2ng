@@ -5,6 +5,7 @@ import json
 import shutil
 from Cheetah.Template import Template
 
+TEMPLATES_DIR = os.path.dirname(__file__) + "/templates"
 
 emptypackage = {
         "package_name" : "undefined",
@@ -51,11 +52,15 @@ def generateCMakeLists(package_name, package_dir=None, cmake_template="CMakeList
     theFile.write(str(t))
 
 
+
+
 def loadSpm(spmfilename):
     return json.loads( open(spmfilename).read() )
 
+
 def addPackageGroup(name):
     print("Adding a package group: " + name)
+
 
 def savePackage(package_name, package, package_dir=None, **kwargs):
     if package_dir == None:
@@ -80,6 +85,7 @@ def loadPackage(package_name, package_dir=None, **kwargs):
     print("unable to load spm file from "  +  package_dir)
     return None
 
+
 def addToProperty(property_name, property_value, package_name, **kwargs):
     print("   - adding to property '" + property_name + "' value: " + str(property_value))
     package = loadPackage(package_name, **kwargs)
@@ -93,21 +99,13 @@ def addToProperty(property_name, property_value, package_name, **kwargs):
         package[property_name].append(property_value)
     savePackage(package_name, package,**kwargs)
 
-def setProperty(package_name, property_name, property_value, **kwargs):
+
+def setProperty(property_name, property_value, package_name, **kwargs):
     print("   - setting property '" + property_name + "' to package '" + package_name + "'")
     package = loadPackage(package_name, **kwargs)
     package[property_name] = property_value
     savePackage(package_name, package, **kwargs)
 
-
-def addProperty(property_name, property_value, package_name, **kwargs):
-    print("   - adding property '" + property_name + "' to package '" + package_name + "'")
-    package = loadPackage(package_name, **kwargs)
-    if property_name not in package:
-        package[property_name] = property_value
-    else:
-        print("  failure: property '" + property_name + "' alreay exists in package " + package_name)
-    savePackage(package_name, package, **kwargs)
 
 def initPackage(package_name, package_dir, package_type="library", **kwargs):
     finalpath = package_dir
@@ -142,9 +140,6 @@ def initPackage(package_name, package_dir, package_type="library", **kwargs):
         spmfile = spmdir + "/config.json"
         print("   - save package description in: " + spmfile)
         open(spmfile, "w").write( json.dumps(  emptypackage ) )
-        setProperty(package_name, "package_name", package_name, package_dir=package_dir)
-        setProperty(package_name, "package_type", package_type, package_dir=package_dir)
-
-        generateCMakeLists(package_name, package_dir=package_dir)
-
+        setProperty("package_name", package_name, package_name, package_dir=package_dir)
+        setProperty("package_type", package_type, package_name, package_dir=package_dir)
 
