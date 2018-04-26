@@ -3,7 +3,6 @@
 import json, os
 import mc
 from Cheetah.Template import Template
-# from mc import moveCodeAndPatch, makeATestContextFrom, reorderCommands
 from sr import moveCodeAndPatch, reorderCommands
 
 #### Let's define some context related to the package to avoid repeating
@@ -26,7 +25,7 @@ context = {
                   "recipe_dir" : os.path.dirname(__file__),
 }
 
-def getSourceDestination(file, context):
+def fromFileToFile(file, context):
     return (context["src_from"] + "/" + file, context["package_dir_src"] + "/" + context["namespace_dir"] + "/" + file)
 
 namespace_begin = """
@@ -64,12 +63,10 @@ tasks += moveCodeAndPatch( ["BVHChannels.h",
                             "BVHOffset.h",
                             "BVHJoint.cpp", "BVHJoint.h",
                             "BVHLoader.cpp", "BVHLoader.h",
-                            "BVHMotion.cpp", "BVHMotion.h"], getSourceDestination, **context)
+                            "BVHMotion.cpp", "BVHMotion.h"], fromFileToFile, **context)
 
 tasks += [["post", "spm", "generate-cmakelists", context]]
 tasks += [["post", "spm", "generate-configfiles", context]]
-
-print("tasks = " + tasks[3][0])
 
 command = {"commands" : reorderCommands(tasks)}
 

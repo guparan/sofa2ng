@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os
+import glob, os
 import json
 import re
 import shutil
@@ -235,51 +235,26 @@ def expand(l, context):
     return l
 
 
-def moveCodeAndPatch(filenames, getSourceDestination, forward=None, **kwargs):
+def moveCodeAndPatch(filenames, fromFileToFile, forward=None, **kwargs):
     if isinstance(filenames, str):
         filenames = [filename]
 
-    #dstpath = package_name + "/src/" + (package_name.lower().replace(".","/"))
-    #dstincpath0 = (package_name.lower().replace(".","/"))
-
-    #dstincpath = "src/" + (package_name.lower().replace(".","/"))
-
-    #if oldheader == None:
-    #    oldheader = package_name.upper()
-    #oldheader += "_" + name.upper()
-
-    #if newheader == None:
-    #    newheader = (package_name.upper() + "_" + name.upper()).replace(".","_")
-
-    #tasks = []
-    #file2property = {".h" : "header_files", ".inl" : "header_files", ".cpp" : "source_files" }
-    #for t in types:
-    #    EXT = t.upper().replace(".","_")
-    #    tasks.append(["move", srcpath + "/" + name + t, dstpath + "/" + name + t])
-    #    if t in file2property:
-    #        tasks.append(["spm", "package", package_name, "property", file2property[t], "add-to", dstincpath + "/" + name + t])
-    #    else:
-    #        tasks.append(["spm", "package", package_name, "property", "extra_files", "add-to", dstincpath + "/" + name + t])
-    #
-    #    tasks.append(["rename", package_name, "#include <" + srcincpath + "/" + name + ".", "#include <" + dstincpath0 + "/" + name + "."])
-    #
-    #    tasks.append(["fixheader", dstpath + "/" + name + t, oldheader + EXT, newheader + EXT])
-    #    if forward != None and t == ".h":
-    #        tasks.append(["mkforward", package_name, srcincpath + "/" + name + t, dstincpath0 + "/" + name + t, forward])
-    #        tasks.append(["spm", "package", package_name, "property", "header_files", "add-to", "deprecated_layout/" + srcincpath + "/" + name + t])
-
     tasks = []
 
-    file2property = {".h" : "header_files", ".inl" : "header_files", ".cpp" : "source_files" }
+    extToCmakeProperty = {".h" : "header_files", ".inl" : "header_files", ".cpp" : "source_files" }
 
     for filename in filenames:
-        ext = os.path.splitext(filename)[1]
-        srcfilename,dstfilename = getSourceDestination(filename, kwargs)
-        r = os.path.commonprefix([dstfilename + "/", kwargs["package_dir_src"] + "/"])
-        dstrelativefilename = dstfilename[len(r):]
-        tasks.append(["move", srcfilename, dstfilename])
-        # tasks.append(["rm", srcfilename])
-        tasks.append(["spm", "add-to-property", file2property[ext], dstrelativefilename, kwargs])
+        # ext = os.path.splitext(filename)[1]
+        srcfilename,dstfilename = fromFileToFile(filename, kwargs)
+        for srcfile in glob.glob(srcfilename + ".*"):
+            ext = os.path.splitext(srcfile)[1]
+            dstfile = dstfilename + ext
+            r = os.path.commonprefix([dstfile + "/", kwargs["package_dir_src"] + "/"])
+            dstrelativefilename = dstfile[len(r):]
+            
+            tasks.append(["move", srcfile, dstfile])
+            # tasks.append(["rm", srcfile])
+            tasks.append(["spm", "add-to-property", extToCmakeProperty[ext], dstrelativefilename, kwargs])
 
     return tasks
 
@@ -293,7 +268,6 @@ def reorderCommands(tasks):
     last = []
     pre = []
     for i in tasks:
-        print("i[0] = " + i[0])
         if i[0] in ["mkdir"]:
             mkdir.append(i)
         elif i[0] in ["move", "rm"]:

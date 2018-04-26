@@ -7,7 +7,7 @@ import sr
 # def lprint(l):
     # print(json.dumps(l, indent=4, separators=(',', ':')))
 
-# def getSourceDestination(file, context):
+# def fromFileToFile(file, context):
     # return (context["recipe_dir"] + "/" + file, context["package_dir_src"] + "/" + file)
 
 # def makeATestContextFrom(context):

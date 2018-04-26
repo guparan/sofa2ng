@@ -54,10 +54,8 @@ def generateCMakeLists(package_name, package_dir=None, cmake_template="CMakeList
 
 
 def generateConfigFiles(package_name, package_dir=None, **kwargs):
-    print("   - generateConfigFiles: " + str(package_name))
-    # package_name = cmd[0]
-    # targetname = "header_files"
-    # configfile = cmd[1]
+    # print("   - generateConfigFiles: " + str(package_name))
+    
     config_dir = kwargs["package_dir_config"]
     config_template_cmake = TEMPLATES_DIR + "/config/" + "config.template.cmake.in"
     config_template_h = TEMPLATES_DIR + "/config/" + "config.template.h"
@@ -111,9 +109,9 @@ def savePackage(package_name, package, package_dir=None, **kwargs):
         package_dir = package_name
     spmdir = package_dir + "/" + ".spm"
     spmfile = spmdir + "/config.json"
-    for k in package:
-        if isinstance( package[k], list ):
-            package[k].sort()
+    # for k in package:
+        # if isinstance( package[k], list ):
+            # package[k].sort()
     open(spmfile, "w").write( json.dumps(package, sort_keys=True, indent=4, separators=(',', ': ')) )
 
 
@@ -131,7 +129,7 @@ def loadPackage(package_name, package_dir=None, **kwargs):
 
 
 def addToProperty(property_name, property_value, package_name, **kwargs):
-    print("   - adding to property '" + property_name + "' value: " + str(property_value))
+    # print("   - adding to property '" + property_name + "' value: " + str(property_value))
     package = loadPackage(package_name, **kwargs)
 
     if property_name not in package:
@@ -145,7 +143,7 @@ def addToProperty(property_name, property_value, package_name, **kwargs):
 
 
 def setProperty(property_name, property_value, package_name, **kwargs):
-    print("   - setting property '" + property_name + "' to package '" + package_name + "'")
+    # print("   - setting property '" + property_name + "' to package '" + package_name + "'")
     package = loadPackage(package_name, **kwargs)
     package[property_name] = property_value
     savePackage(package_name, package, **kwargs)

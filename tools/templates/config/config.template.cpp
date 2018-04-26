@@ -1,6 +1,6 @@
 #encoding utf-8
 #compiler-settings
-commentStartToken = //
+commentStartToken = ///
 directiveStartToken = %
 cheetahVarStartToken = autopack::
 #end compiler-settings
@@ -27,7 +27,10 @@ cheetahVarStartToken = autopack::
 ******************************************************************************/
 #include <autopack::{package_name}.h>
 
-autopack::namespace_begin
+%for autopack::namespace in autopack::new_namespace
+namespace autopack::namespace
+{
+%end for
 
 extern "C" {
     autopack::{package_cname}_API void initExternalModule();
@@ -69,7 +72,10 @@ const char* getModuleDescription()
 
 const char* getModuleComponentList()
 {
-    return "autopack::componentlist";
+    %set autopack::components = ', '.join(autopack::componentlist)
+    return "autopack::components";
 }
 
-autopack::namespace_end
+%for autopack::namespace in reversed(autopack::new_namespace)
+} // namespace autopack::namespace
+%end for
