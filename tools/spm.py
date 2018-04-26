@@ -79,6 +79,23 @@ def generateConfigFiles(package_name, package_dir=None, **kwargs):
     theFile = open(config_dir + "/" + package_name + ".cpp", "w+")
     t = Template( open(config_template_cpp).read(), searchList=[context] )
     theFile.write(str(t))
+    
+    
+def generateDeprecatedLayout(package_name, package_dir=None, **kwargs):
+    # print("   - generateDeprecatedLayout: " + str(package_name))
+    deprecatedlayout_dir = kwargs["package_dir_deprecated"]
+    deprecatedlayout_template = TEMPLATES_DIR + "/deprecated_layout/" + "header.template.h"
+    
+    context = loadPackage(package_name, package_dir=package_dir)
+    
+    # fromFiles = kwargs["src_from"] * kwargs["package_components"]
+    for component in kwargs["package_components"]:         
+        file = component + ".h"
+        context["file_include"] = '/'.join(context["new_namespace"]) + '/' + file
+        context["file_cname"] = component.upper()
+        theFile = open(deprecatedlayout_dir + "/" + file, "w+")
+        t = Template( open(deprecatedlayout_template).read(), searchList=[context] )
+        theFile.write(str(t))
 
 
 def loadSpm(spmfilename):

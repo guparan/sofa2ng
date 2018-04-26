@@ -185,6 +185,8 @@ def spmCmd(command=None, *args, **kwargs):
         spm.generateCMakeLists(**kwargs)
     elif command == "generate-configfiles":
         spm.generateConfigFiles(**kwargs)
+    elif command == "generate-deprecatedlayout":
+        spm.generateDeprecatedLayout(**kwargs)
     else:
         print("Invalid spm cmd:" +str(command))
 
