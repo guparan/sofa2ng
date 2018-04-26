@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json, os
+import mc
+from Cheetah.Template import Template
+# from mc import moveCodeAndPatch, makeATestContextFrom, reorderCommands
+from sr import moveCodeAndPatch, reorderCommands
+
+#### Let's define some context related to the package to avoid repeating
+#### these values all the time
+
+package_dir = to_root + "/Sofa/Helper/Bvh"
+context = {
+                   "from_root" : from_root,
+                    "src_from" : from_root + "/SofaKernel/framework/sofa/helper/io/bvh",
+                 #"tests_from" : from_root + "/SofaKernel/framework/framework_test/helper/io/bvh",
+                "package_name" : "Sofa.Helper.Bvh",
+                "package_type" : "library",
+                 "package_dir" : package_dir,
+             "package_dir_src" : package_dir + "/src",
+           "package_dir_tests" : package_dir + "/tests",
+          "package_dir_config" : package_dir + "/config",
+      "package_dir_deprecated" : package_dir + "/deprecated_layout",
+               "namespace_dir" : "sofa/helper/io/bvh",
+    "namespace_dir_deprecated" : "sofa/helper/io/bvh",
+                  "recipe_dir" : os.path.dirname(__file__),
+}
+
+def getSourceDestination(file, context):
+    return (context["src_from"] + "/" + file, context["package_dir_src"] + "/" + context["namespace_dir"] + "/" + file)
+
+namespace_begin = """
+namespace sofa
+{
+namespace helper
+{
+namespace io
+{
+namespace bvh
+{
+"""
+
+namespace_end = """
+} // namespace bvh
+} // namespace io
+} // namespace helper
+} // namespace sofa
+"""
+
+# Here is our recipe to make the package
+tasks = []
+tasks += [["spm", "init", context]]
+tasks += [["spm", "add-to-property", "dependencies", "SofaFramework", context]]
+tasks += [["spm", "set-property", "namespace_begin", namespace_begin, context]]
+tasks += [["spm", "set-property", "namespace_end", namespace_end, context]]
+tasks += [["spm", "set-property", "componentlist", "", context]]
+
+tasks += [["mkdir", "${package_dir_src}/${namespace_dir}", context]]
+tasks += [["mkdir", "${package_dir_deprecated}/${namespace_dir_deprecated}", context]]
+# tasks += [["mkdir", "${package_dir_tests}", context]]
+tasks += [["mkdir", "${package_dir_config}", context]]
+
+tasks += moveCodeAndPatch( ["BVHChannels.h",
+                            "BVHOffset.h",
+                            "BVHJoint.cpp", "BVHJoint.h",
+                            "BVHLoader.cpp", "BVHLoader.h",
+                            "BVHMotion.cpp", "BVHMotion.h"], getSourceDestination, **context)
+
+tasks += [["post", "spm", "generate-cmakelists", context]]
+tasks += [["post", "spm", "generate-configfiles", context]]
+
+print("tasks = " + tasks[3][0])
+
+command = {"commands" : reorderCommands(tasks)}
+
+
+
