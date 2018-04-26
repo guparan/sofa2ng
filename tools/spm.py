@@ -21,7 +21,8 @@ def toLine(l):
         s += " " + i
     return s
 
-def generateCMakeLists(package_name, package_dir=None, cmake_template="BaseCMakeLists.cmake", **kwargs):
+
+def generateCMakeLists(package_name, package_dir=None, cmake_template="CMakeLists.template.cmake", **kwargs):
     if package_dir == None:
         package_dir = package_name
     print("   - generating " + package_dir + "/CMakeLists.txt")
