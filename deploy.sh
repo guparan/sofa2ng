@@ -7,7 +7,7 @@ cd $SCRIPT_DIR
 # ./tools/mc.py recipes/bootstrap-migration.rcpy ../.. ../..
 # ./tools/mc.py recipes/Sofa.Config/Sofa.Config.rcpy ../.. ../../kernel
 #./tools/mc.py recipes/Sofa.Type/Sofa.Type.rcpy ../.. ng/kernel
-py -2 ./tools/mc.py recipes/Sofa.Component.Utils/Sofa.Component.Utils.rcpy ../.. ../../modules
+py -2 ./tools/mc.py recipes/Sofa.Component.Utils.rcpy ../.. ../../modules
 # py -2 ./tools/mc.py recipes/Sofa.Helper.Bvh.rcpy ../.. ../../modules
 
 # #### Prepare kernel
