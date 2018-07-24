@@ -31,7 +31,6 @@ directiveStartToken = %
 
 %set $complete_new_namespace = '::'.join($new_namespace)
 %set $step_old_namespace = ''
-
 %for $namespace in $old_namespace
 namespace $namespace
 {
@@ -40,9 +39,15 @@ namespace $namespace
 %else
 %set $step_old_namespace = $namespace
 %end if
-// Insert $step_old_namespace::* aliasing here
-
 %end for
+
+// Auto-generated "using" based on old_namespace and new_namespace
+// See recipe for details
+using $complete_new_namespace::$component
+
+// You can also set some $step_old_namespace::* alias here
+// Example: to make the old namespace $step_old_namespace::something point to the new $complete_new_namespace
+// namespace something = $complete_new_namespace
 
 %for $namespace in reversed($old_namespace)
 } // namespace $namespace
