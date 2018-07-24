@@ -30,8 +30,8 @@ def generateCMakeLists(package_name, package_dir=None, cmake_template="CMakeList
     print("   - generating " + package_dir + "/CMakeLists.txt")
 
     theFile = open(package_dir + "/CMakeLists.txt", "w + ")
-    pck = loadPackage(package_name, package_dir=package_dir)
-    pck["sorted_dependencies"] = toLine( pck["dependencies"] )
+    context = loadPackage(package_name, package_dir=package_dir)
+    context["sorted_dependencies"] = toLine( context["dependencies"] )
 
     templatebasepath = os.path.dirname(os.path.abspath(__file__)) + "/templates"
     templatelocation = templatebasepath + "/" + cmake_template
@@ -49,8 +49,55 @@ def generateCMakeLists(package_name, package_dir=None, cmake_template="CMakeList
         print(" - failed to find a valid template in " + templatelocation)
         return
 
-    t = Template( open(templatelocation).read(), searchList=[pck, {"cmake_template_src_path" : templatelocation}])
+    t = Template( open(templatelocation).read(), searchList=[context, {"cmake_template_src_path" : templatelocation}])
     theFile.write(str(t))
+
+
+def generateCMakeListsTests(package_name, package_dir=None, cmake_template="tests/CMakeLists.template.cmake", **kwargs):
+    print("PACKAGE_DIR = " + package_dir)
+    context = loadPackage(package_name, package_dir)
+    # package_dir = context["package_dir_test"]
+    context["sorted_dependencies_test"] = toLine( context["dependencies_test"] )
+    context["package_name_test"] = context["package_name"] + ".tests"
+    context["header_files_test"] = ["None"]
+    context["source_files_test"] = ["None"]
+    
+    print("   - generating " + package_dir + "/tests/CMakeLists.txt")
+    
+    theFile = open(package_dir + "/tests/CMakeLists.txt", "w + ")
+
+    templatebasepath = os.path.dirname(os.path.abspath(__file__)) + "/templates"
+    templatelocation = templatebasepath + "/" + cmake_template
+    if os.path.exists(cmake_template):
+        templatelocation = cmake_template
+    elif os.path.exists(templatelocation):
+        pass
+    else:
+        print(" - failed to find a valid template in")
+        print("   search for: " + cmake_template)
+        print("   search for: " + templatelocation)
+        return
+
+    if not os.path.exists(templatelocation):
+        print(" - failed to find a valid template in " + templatelocation)
+        return
+
+    t = Template( open(templatelocation).read(), searchList=[context, {"cmake_template_src_path" : templatelocation}])
+    theFile.write(str(t))
+    
+    # if os.path.isdir(package_dir + "/tests"):
+    #     if not os.path.isdir(package_dir + "/tests/.spm"):
+    #         shutil.copytree(package_dir + "/.spm", package_dir + "/tests/.spm")
+    #     
+    #     print("kwargs = ")
+    #     for x in kwargs:
+    #         if isinstance(kwargs[x], basestring):
+    #             print (x + " : " + kwargs[x])
+    #         else:
+    #             print (x + " :")
+    #             for y in kwargs[x]:
+    #                 print ("  - " + y)
+    #     generateCMakeLists(package_name, package_dir + "/tests", "tests/CMakeLists.template.cmake", **context)
 
 
 def generateConfigFiles(package_name, package_dir=None, **kwargs):
@@ -89,6 +136,8 @@ def generateDeprecatedLayout(package_name, package_dir=None, **kwargs):
     # fromFiles = kwargs["src_from"] * kwargs["package_components"]
     for component in kwargs["package_components"]:         
         file = component + ".h"
+        print("file = " + file)
+        context["component"] = component
         context["file_include"] = '/'.join(context["new_namespace"]) + '/' + file
         context["file_cname"] = component.upper()
         theFile = open(deprecatedlayout_dir + "/" + file, "w+")

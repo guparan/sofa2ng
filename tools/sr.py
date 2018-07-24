@@ -183,6 +183,8 @@ def spmCmd(command=None, *args, **kwargs):
         spm.initPackage(**kwargs)
     elif command == "generate-cmakelists":
         spm.generateCMakeLists(**kwargs)
+    elif command == "generate-cmakelists-tests":
+        spm.generateCMakeListsTests(**kwargs)
     elif command == "generate-configfiles":
         spm.generateConfigFiles(**kwargs)
     elif command == "generate-deprecatedlayout":
@@ -196,27 +198,19 @@ def replacetextCmd(root_dir, str_src, str_dst, **kwargs):
         for (rootpath, dirname, filenames) in os.walk(root_dir):
             for filename in filenames:
                 path = rootpath + "/" + filename
-                tmp = open(path + "_tmp","w")
-                ## Usefull but we don't have feedback on the repacements done tmp.write(open(path, "r").read().replace(str_src, str_dst))
-                for line in open(path, "r"):
-                    iline = re.sub(str_src, str_dst, line)
-                    if iline != line:
-                        print(" - fix " + path + ": " + iline),
-                    tmp.write(iline)
-                tmp.close()
-                shutil.copyfile(path + "_tmp", path)
-                os.remove(path + "_tmp")
+                replaceTextInFile(path, str_src, str_dst)
     else:
         path = root_dir
-        tmp = open(path + "_tmp","w")
-        for line in open(path, "r"):
-            iline = re.sub(str_src, str_dst, line)
-            if iline != line:
-                print(" - fix " + path + ": " + iline),
-            tmp.write(iline)
-        tmp.close()
-        shutil.copyfile(path + "_tmp", path)
-        os.remove(path + "_tmp")
+        replaceTextInFile(path, str_src, str_dst)
+
+        
+def replaceTextInFile(filename, str_src, str_dst):
+    file = open(filename, "r")
+    text = file.read() # Read the file and assigns the value to a variable
+    file.close() # Close the file (read session)    
+    file = open(filename, "w")
+    file.write( re.sub(str_src, str_dst, text) )
+    file.close() # Close the file (write session)
 
 
 def expand(l, context):
@@ -249,13 +243,15 @@ def moveCodeAndPatch(filenames, fromFileToFile, forward=None, **kwargs):
         for srcfile in glob.glob(srcfilename + ".*"):
             ext = os.path.splitext(srcfile)[1]
             dstfile = dstfilename + ext
-            r = os.path.commonprefix([dstfile + "/", kwargs["package_dir_src"] + "/"])
+            if dstfilename.startswith(kwargs["package_dir_src"]):
+                r = os.path.commonprefix([dstfile + "/", kwargs["package_dir"] + "/"])
+            elif dstfilename.startswith(kwargs["package_dir_test"]):
+                r = os.path.commonprefix([dstfile + "/", kwargs["package_dir_test"] + "/"])
             dstrelativefilename = dstfile[len(r):]
             
             tasks.append(["move", srcfile, dstfile])
             # tasks.append(["rm", srcfile])
             tasks.append(["spm", "add-to-property", extToCmakeProperty[ext], dstrelativefilename, kwargs])
-
     return tasks
 
 
