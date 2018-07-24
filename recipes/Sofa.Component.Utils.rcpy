@@ -12,33 +12,42 @@ package_dir = to_root + "/Sofa/Component/Utils"
 context = {
                    "from_root" : from_root,
                     "src_from" : from_root + "/SofaKernel/modules/SofaComponentBase",
-                  "tests_from" : from_root + "SofaKernel/modules/SofaComponentBase/SofaComponentBase_test",
+                   "test_from" : from_root + "/SofaKernel/modules/SofaComponentBase/SofaComponentBase_test",
                 "package_name" : "Sofa.Component.Utils",
                 "package_type" : "library",
                  "package_dir" : package_dir,
              "package_dir_src" : package_dir + "/src",
-           "package_dir_tests" : package_dir + "/tests",
+            "package_dir_test" : package_dir + "/tests",
           "package_dir_config" : package_dir + "/config",
       "package_dir_deprecated" : package_dir + "/deprecated_layout/SofaComponentBase",
                   "recipe_dir" : os.path.dirname(__file__),
           "package_components" : ["InfoComponent", "MakeAliasComponent", "MakeDataAliasComponent", "messageHandlerComponent"],
+             "test_components" : ["MakeAliasComponent_test", "MakeDataAliasComponent_test", "MessageHandlerComponent_test"],
                "old_namespace" : ["sofa", "component", "utils"],
-               "new_namespace" : ["sofa", "component", "test"],
+               "new_namespace" : ["sofa", "component", "utils"],
 }
 context["package_dir_src_with_namespace"] = context["package_dir_src"] + "/" + '/'.join(context["new_namespace"])
 
 def fromFileToFile(file, context):
     return (
-        context["src_from"] + "/" + file, 
-        context["package_dir_src"] + "/" + '/'.join(context["new_namespace"]) + "/" + file
+        context["src_from"] + "/" + file,                    # source
+        context["package_dir_src"] + "/" +                   # destination
+            '/'.join(context["new_namespace"]) + "/" + file
+    )
+
+def fromFileToFile_test(file, context):
+    return (
+        context["test_from"] + "/" + file,          # source
+        context["package_dir_test"] + "/" + file    # destination
     )
 
 
-#### Here is our receipe to make the package
+########### INIT ############
 tasks = []
 
 tasks += [["spm", "init", context]]
 tasks += [["spm", "add-to-property", "dependencies", "SofaFramework", context]]
+tasks += [["spm", "add-to-property", "dependencies_test", ["SofaTest", "SofaGTestMain"], context]]
 
 tasks += [["spm", "set-property", "old_namespace", context["old_namespace"], context]]
 tasks += [["spm", "set-property", "new_namespace", context["new_namespace"], context]]
@@ -46,12 +55,15 @@ tasks += [["spm", "set-property", "componentlist", context["package_components"]
 
 tasks += [["mkdir", "${package_dir_src_with_namespace}", context]]
 tasks += [["mkdir", "${package_dir_deprecated}", context]]
-tasks += [["mkdir", "${package_dir_tests}", context]]
+tasks += [["mkdir", "${package_dir_test}", context]]
 tasks += [["mkdir", "${package_dir_config}", context]]
+##########################
 
-tasks += moveCodeAndPatch(context["package_components"], fromFileToFile, **context)
 
-### dirty patch to correct file name that does not follow conventions.
+######## SOURCES #########
+tasks += moveCodeAndPatch(context["package_components"], fromFileToFile, **context) # will set header_files and source_files
+
+# dirty patch to correct file name that does not follow conventions
 tasks += [["move", "${package_dir_src_with_namespace}/messageHandlerComponent.cpp",     "${package_dir_src_with_namespace}/MessageHandlerComponent.cpp.tmp", context]]
 tasks += [["move", "${package_dir_src_with_namespace}/messageHandlerComponent.h",       "${package_dir_src_with_namespace}/MessageHandlerComponent.h.tmp", context]]
 tasks += [["rm",   "${package_dir_src_with_namespace}/messageHandlerComponent.h",       context]]
@@ -61,13 +73,28 @@ tasks += [["move", "${package_dir_src_with_namespace}/MessageHandlerComponent.h.
 tasks += [["rm",   "${package_dir_src_with_namespace}/MessageHandlerComponent.h.tmp",   context]]
 tasks += [["rm",   "${package_dir_src_with_namespace}/MessageHandlerComponent.cpp.tmp", context]]
 
+tasks += [["spm", "generate-deprecatedlayout", context]]
+
 tasks += [["replacetext", "${package_dir}", "messageHandlerComponent", "MessageHandlerComponent", context]]
 
-tasks += [["post", "spm", "generate-cmakelists", context]]
-tasks += [["post", "spm", "generate-configfiles", context]]
-tasks += [["post", "spm", "generate-deprecatedlayout", context]]
+tasks += [["spm", "generate-cmakelists", context]]
+##########################
 
-command = {"commands" : reorderCommands(tasks)}
 
+######### TESTS ##########
+# reset properties for new CMakeLists generation
+tasks += [["spm", "set-property", "header_files", [], context]] # clear header_files
+tasks += [["spm", "set-property", "source_files", [], context]] # clear source_files
+tasks += moveCodeAndPatch(context["test_components"], fromFileToFile_test, **context) # will set header_files and source_files
+tasks += [["spm", "generate-cmakelists-tests", context]]
+##########################
+
+
+######### CONFIG #########
+tasks += [["spm", "generate-configfiles", context]]
+##########################
+
+# command = {"commands" : reorderCommands(tasks)}
+command = {"commands" : tasks}
 
 
