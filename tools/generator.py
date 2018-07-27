@@ -3,6 +3,8 @@
 import os
 import json
 import shutil
+import fnmatch
+import re
 from Cheetah.Template import Template
 
 TEMPLATES_DIR = os.path.dirname(__file__) + "/templates"
@@ -30,8 +32,9 @@ def generateCMakeLists(package_name, package_dir=None, cmake_template="CMakeList
     print("   - generating " + package_dir + "/CMakeLists.txt")
 
     theFile = open(package_dir + "/CMakeLists.txt", "w + ")
+    dependency_targets = getDependencyTargets(kwargs["dependencies"], kwargs["from_root"])
+    setProperty("dependency_targets", dependency_targets, package_name, package_dir=package_dir)
     context = loadPackage(package_name, package_dir=package_dir)
-    context["sorted_dependencies"] = toLine( context["dependencies"] )
 
     templatebasepath = os.path.dirname(os.path.abspath(__file__)) + "/templates"
     templatelocation = templatebasepath + "/" + cmake_template
@@ -55,15 +58,13 @@ def generateCMakeLists(package_name, package_dir=None, cmake_template="CMakeList
 
 def generateCMakeListsTests(package_name, package_dir=None, cmake_template="tests/CMakeLists.template.cmake", **kwargs):
     print("PACKAGE_DIR = " + package_dir)
+    # package_dir = context["test_package_dir"]
+    # context["sorted_test_dependencies"] = toLine( context["test_dependencies"] )
+    setProperty("test_dependency_targets", kwargs["test_dependencies"], package_name, package_dir=package_dir)
     context = loadPackage(package_name, package_dir)
-    # package_dir = context["package_dir_test"]
-    context["sorted_dependencies_test"] = toLine( context["dependencies_test"] )
-    context["package_name_test"] = context["package_name"] + ".tests"
-    context["header_files_test"] = ["None"]
-    context["source_files_test"] = ["None"]
-    
+
     print("   - generating " + package_dir + "/tests/CMakeLists.txt")
-    
+
     theFile = open(package_dir + "/tests/CMakeLists.txt", "w + ")
 
     templatebasepath = os.path.dirname(os.path.abspath(__file__)) + "/templates"
@@ -86,8 +87,8 @@ def generateCMakeListsTests(package_name, package_dir=None, cmake_template="test
     theFile.write(str(t))
     
     # if os.path.isdir(package_dir + "/tests"):
-    #     if not os.path.isdir(package_dir + "/tests/.spm"):
-    #         shutil.copytree(package_dir + "/.spm", package_dir + "/tests/.spm")
+    #     if not os.path.isdir(package_dir + "/tests/.generator"):
+    #         shutil.copytree(package_dir + "/.generator", package_dir + "/tests/.generator")
     #     
     #     print("kwargs = ")
     #     for x in kwargs:
@@ -145,8 +146,29 @@ def generateDeprecatedLayout(package_name, package_dir=None, **kwargs):
         theFile.write(str(t))
 
 
-def loadSpm(spmfilename):
-    return json.loads( open(spmfilename).read() )
+def getDependencyTargets(dependencies, from_root):
+    targets = []
+    for (rootpath, dirname, filenames) in os.walk(from_root):
+        for filename in fnmatch.filter(filenames, '*CMakeLists.txt'):
+            filepath = rootpath + "/" + filename
+            for dep in dependencies:
+                if not re.search('Sofa[A-Z].*', dep): # not standard Sofa dep
+                    targets += dep
+                    break # one more target found
+                filestring = open(filepath).read()
+                if re.search('.*project\( *'+dep+' *\).*', filestring):
+                    # print(dep + " is in " + filepath)
+                    found = re.search('.*sofa_install_targets\( *([A-Za-z0-9]+).*', filestring)
+                    if found:
+                        targets += [found.group(1)]
+                        break # one more target found
+            if len(targets) == len(dependencies):
+                break # all targets found
+    return targets
+
+
+def loadGenerator(generatorfilename):
+    return json.loads( open(generatorfilename).read() )
 
 
 def addPackageGroup(name):
@@ -156,24 +178,24 @@ def addPackageGroup(name):
 def savePackage(package_name, package, package_dir=None, **kwargs):
     if package_dir == None:
         package_dir = package_name
-    spmdir = package_dir + "/" + ".spm"
-    spmfile = spmdir + "/config.json"
+    generatordir = package_dir + "/" + ".generator"
+    generatorfile = generatordir + "/config.json"
     # for k in package:
         # if isinstance( package[k], list ):
             # package[k].sort()
-    open(spmfile, "w").write( json.dumps(package, sort_keys=True, indent=4, separators=(',', ': ')) )
+    open(generatorfile, "w").write( json.dumps(package, sort_keys=True, indent=4, separators=(',', ': ')) )
 
 
 def loadPackage(package_name, package_dir=None, **kwargs):
     if package_dir == None:
         package_dir = package_name
-    spmdir = package_dir + "/" + ".spm"
-    spmfile = spmdir + "/config.json"
-    if os.path.exists(spmfile):
-        spm = loadSpm(spmfile)
-        spm["package_cname"] = spm["package_name"].replace(".","_").upper()
-        return spm
-    print("unable to load spm file from "  +  package_dir)
+    generatordir = package_dir + "/" + ".generator"
+    generatorfile = generatordir + "/config.json"
+    if os.path.exists(generatorfile):
+        generator = loadGenerator(generatorfile)
+        # generator["package_cname"] = generator["package_name"].replace(".","_").upper()
+        return generator
+    print("unable to load generator file from "  +  package_dir)
     return None
 
 
@@ -212,11 +234,11 @@ def initPackage(package_name, package_dir, package_type="library", **kwargs):
         else:
             groupname = parentpath.replace('/', '.')
             print("    - create group: " + groupname)
-            #spmdir = parentpath + "/" + ".spm"
-            #spmfile = spmdir + "/config.json"
+            #generatordir = parentpath + "/" + ".generator"
+            #generatorfile = generatordir + "/config.json"
             os.mkdir(parentpath)
-            #os.mkdir(spmdir)
-            #open(spmfile, "w").write( json.dumps( emptypackage ) )
+            #os.mkdir(generatordir)
+            #open(generatorfile, "w").write( json.dumps( emptypackage ) )
             #setProperty(groupname, "package_name", groupname)
             #setProperty(groupname, "package_type", "group")
 
@@ -224,13 +246,16 @@ def initPackage(package_name, package_dir, package_type="library", **kwargs):
         if not os.path.exists(finalpath):
             print("    - create dir")
             os.mkdir(finalpath)
-        spmdir = finalpath + "/" + ".spm"
-        if not os.path.exists(spmdir):
-            print("    - create spm dir")
-            os.mkdir(spmdir)
-        spmfile = spmdir + "/config.json"
-        print("   - save package description in: " + spmfile)
-        open(spmfile, "w").write( json.dumps(  emptypackage ) )
+        generatordir = finalpath + "/" + ".generator"
+        if not os.path.exists(generatordir):
+            print("    - create generator dir")
+            os.mkdir(generatordir)
+        generatorfile = generatordir + "/config.json"
+        print("   - save package description in: " + generatorfile)
+        open(generatorfile, "w").write( json.dumps(  emptypackage ) )
         setProperty("package_name", package_name, package_name, package_dir=package_dir)
         setProperty("package_type", package_type, package_name, package_dir=package_dir)
+        setProperty("package_cname", package_name.replace(".","_").upper(), package_name, package_dir=package_dir)
+        for value in kwargs:
+            setProperty(value, kwargs[value], package_name, package_dir=package_dir)
 
