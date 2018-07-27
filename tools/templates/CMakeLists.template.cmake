@@ -3,17 +3,13 @@
 commentStartToken = //
 cheetahVarStartToken = autopack::
 #end compiler-settings
-
-### CMakeLists.txt are generated from our lovely *spm* tool using the following template:
-### autopack::{cmake_template_src_path}
-### In case you need to customize this CMakeLists.txt please copy this template 
-### and pass the path to your version in the cmake_template property of the project.
-
+#set autopack::dependencies_str = ' '.join(autopack::dependencies)
 cmake_minimum_required(VERSION 3.1)
+
 project(autopack::package_name VERSION 1.0)
 
-#for depend in autopack::dependencies
-find_package(autopack::depend QUIET)
+#for depend in autopack::dependency_targets
+find_package(autopack::depend)
 #end for
 
 set(HEADER_FILES config/${PROJECT_NAME}.h)
@@ -42,7 +38,7 @@ add_autopack::{package_type}(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES} ${E
 #else
 add_autopack::{package_type}(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${EXTRA_FILES})
 #end if
-target_link_libraries(${PROJECT_NAME} PUBLIC autopack::{sorted_dependencies})
+target_link_libraries(${PROJECT_NAME} PUBLIC autopack::{dependencies_str})
 target_compile_definitions(${PROJECT_NAME} PRIVATE "-DBUILD_autopack::package_cname")
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/config>")
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/deprecated_layout>")

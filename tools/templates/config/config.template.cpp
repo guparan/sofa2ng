@@ -72,8 +72,8 @@ const char* getModuleDescription()
 
 const char* getModuleComponentList()
 {
-    %set autopack::components = ', '.join(autopack::componentlist)
-    return "autopack::components";
+    %set autopack::componentlist = ', '.join(autopack::package_components)
+    return "autopack::componentlist";
 }
 
 %for autopack::namespace in reversed(autopack::new_namespace)
