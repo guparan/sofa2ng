@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json, os
-import mc
 from Cheetah.Template import Template
-from sr import moveCodeAndPatch, reorderCommands
+import bootstrap
+from constructor import moveCodeAndPatch, reorderCommands
 
-#### Let's define some context related to the package to avoid repeating
-#### these values all the time
 
 package_dir = to_root + "/Sofa/Helper/Bvh"
 context = {
@@ -24,10 +22,6 @@ context = {
                "new_namespace" : ["sofa", "helper", "bvh"],
 }
 context["package_dir_src_with_namespace"] = context["package_dir_src"] + "/" + '/'.join(context["new_namespace"])
-old_namespace_opening = 'namespace[\t ]+' + '[\n\r\t{ ]*namespace[\t ]+'.join(context["old_namespace"]) + '[\n\r\t ]*{'
-new_namespace_opening = 'namespace ' + '\n{\nnamespace '.join(context["new_namespace"]) + '\n{'
-old_namespace_closing = '}[\t ]*//[\t ]*namespace[\t ]+' + '[\n\r]*}[\t ]*//[\t ]*namespace[\t ]+'.join(reversed(context["old_namespace"]))
-new_namespace_closing = '} // namespace ' + '\n} // namespace '.join(reversed(context["new_namespace"]))
 
 
 def fromFileToFile(file, context):
@@ -44,26 +38,24 @@ tasks += [["mkdir", "${package_dir_src_with_namespace}", context]]
 tasks += [["mkdir", "${package_dir_deprecated}", context]]
 tasks += [["mkdir", "${package_dir_config}", context]]
 
-tasks += [["spm", "init", context]]
-tasks += [["spm", "add-to-property", "dependencies", ["SofaFramework"], context]]
-tasks += [["spm", "set-property", "old_namespace", context["old_namespace"], context]]
-tasks += [["spm", "set-property", "new_namespace", context["new_namespace"], context]]
-tasks += [["spm", "set-property", "componentlist", context["package_components"], context]]
+tasks += [["generator", "init", context]]
+tasks += [["generator", "add-to-property", "dependencies", ["SofaFramework"], context]]
+tasks += [["generator", "set-property", "old_namespace", context["old_namespace"], context]]
+tasks += [["generator", "set-property", "new_namespace", context["new_namespace"], context]]
+tasks += [["generator", "set-property", "componentlist", context["package_components"], context]]
 ##########################
 
 
 ######## SOURCES #########
 tasks += moveCodeAndPatch(context["package_components"], fromFileToFile, **context) # will set header_files and source_files
-tasks += [["replacetext", context["package_dir_src"], old_namespace_opening, new_namespace_opening, context]]
-tasks += [["replacetext", context["package_dir_src"], old_namespace_closing, new_namespace_closing, context]]
 
-tasks += [["spm", "generate-cmakelists", context]]
-tasks += [["spm", "generate-deprecatedlayout", context]]
+tasks += [["generator", "generate-cmakelists", context]]
+tasks += [["generator", "generate-deprecatedlayout", context]]
 ##########################
 
 
 ######### CONFIG #########
-tasks += [["spm", "generate-configfiles", context]]
+tasks += [["generator", "generate-configfiles", context]]
 ##########################
 
 
