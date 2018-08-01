@@ -60,7 +60,9 @@ def moveCodeAndPatch(filenames, fromFileToFile, forward=None, **kwargs):
                 tasks.append(["generator", "add-to-property", extToCmakeProperty[ext], dstrelativefilename, kwargs])
             elif dstfilename.startswith(kwargs["test_package_dir"]):
                 tasks.append(["generator", "add-to-property", extToCmakeProperty_test[ext], dstrelativefilename, kwargs])
-
+        
+        deprecated_prefix = kwargs["package_dir_deprecated"].replace(kwargs["package_dir"] + "/", "")
+        tasks.append(["generator", "add-to-property", "deprecated_header_files", deprecated_prefix + "/" + filename + ".h", kwargs])
     return tasks
 
     

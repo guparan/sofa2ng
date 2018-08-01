@@ -16,11 +16,16 @@ set(HEADER_FILES config/${PROJECT_NAME}.h)
 set(SOURCE_FILES config/${PROJECT_NAME}.cpp)
 
 list(APPEND HEADER_FILES
-#for filename in autopack::header_files   
+#for filename in autopack::deprecated_header_files   
     autopack::filename
 #end for
 )
 
+list(APPEND HEADER_FILES
+#for filename in autopack::header_files   
+    autopack::filename
+#end for
+)
 list(APPEND SOURCE_FILES
 #for filename in autopack::source_files 
     autopack::filename

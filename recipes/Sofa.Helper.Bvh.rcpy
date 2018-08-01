@@ -3,7 +3,7 @@
 import json, os
 from Cheetah.Template import Template
 import bootstrap
-from constructor import moveCodeAndPatch, reorderCommands
+from constructor import moveCodeAndPatch, patchNamespace, reorderCommands
 
 
 package_dir = to_root + "/Sofa/Helper/Bvh"
@@ -12,6 +12,7 @@ context = {
                     "src_from" : from_root + "/SofaKernel/framework/sofa/helper/io/bvh",
                 "package_name" : "Sofa.Helper.Bvh",
                 "package_type" : "library",
+                "dependencies" : ["SofaHelper"],
                  "package_dir" : package_dir,
              "package_dir_src" : package_dir + "/src",
           "package_dir_config" : package_dir + "/config",
@@ -20,6 +21,8 @@ context = {
           "package_components" : ["BVHChannels", "BVHOffset", "BVHJoint", "BVHLoader", "BVHMotion"],
                "old_namespace" : ["sofa", "helper", "io", "bvh"],
                "new_namespace" : ["sofa", "helper", "bvh"],
+                "header_files" : [], # will be filled by moveCodeAndPatch
+                "source_files" : [], # will be filled by moveCodeAndPatch
 }
 context["package_dir_src_with_namespace"] = context["package_dir_src"] + "/" + '/'.join(context["new_namespace"])
 
@@ -34,20 +37,18 @@ def fromFileToFile(file, context):
 
 ########### INIT ############
 tasks = []
+tasks += [["generator", "init", context]]
 tasks += [["mkdir", "${package_dir_src_with_namespace}", context]]
 tasks += [["mkdir", "${package_dir_deprecated}", context]]
 tasks += [["mkdir", "${package_dir_config}", context]]
-
-tasks += [["generator", "init", context]]
-tasks += [["generator", "add-to-property", "dependencies", ["SofaFramework"], context]]
-tasks += [["generator", "set-property", "old_namespace", context["old_namespace"], context]]
-tasks += [["generator", "set-property", "new_namespace", context["new_namespace"], context]]
-tasks += [["generator", "set-property", "componentlist", context["package_components"], context]]
 ##########################
 
 
 ######## SOURCES #########
 tasks += moveCodeAndPatch(context["package_components"], fromFileToFile, **context) # will set header_files and source_files
+tasks += patchNamespace(context["package_dir_src"], **context)
+tasks += [["replacetext", context["package_dir_src"], "SOFA_HELPER_API", "SOFA_HELPER_BVH_API", context]]
+tasks += [["replacetext", context["package_dir_src"], "include <sofa/helper/helper.h>", "include <Sofa.Helper.Bvh.h>", context]]
 
 tasks += [["generator", "generate-cmakelists", context]]
 tasks += [["generator", "generate-deprecatedlayout", context]]

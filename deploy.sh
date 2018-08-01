@@ -15,4 +15,4 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $SCRIPT_DIR
 pwd
 
-py -2 ./tools/bootstrap.py recipes/$recipe.rcpy ../.. ../../modules
+py -2 ./tools/bootstrap.py $recipe ../.. ../../modules

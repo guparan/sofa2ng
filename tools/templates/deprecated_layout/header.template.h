@@ -29,9 +29,11 @@ directiveStartToken = %
 
 #include <${file_include}>
 
-%set $complete_new_namespace = '::'.join($new_namespace)
 %set $step_old_namespace = ''
-%for $namespace in $old_namespace
+%set $old_namespace_copy = list($old_namespace)
+%set $last_old_namespace = $old_namespace_copy.pop()
+%set $complete_new_namespace = '::'.join($new_namespace)
+%for $namespace in $old_namespace_copy
 namespace $namespace
 {
 %if $step_old_namespace
@@ -41,15 +43,19 @@ namespace $namespace
 %end if
 %end for
 
-// Auto-generated "using" based on old_namespace and new_namespace
-// See recipe for details
-using $complete_new_namespace::$component
+// Namespace forwarding: solution 1
+// Auto-generated alias to make $step_old_namespace::$last_old_namespace point to $complete_new_namespace
+// namespace $last_old_namespace = $complete_new_namespace;
 
-// You can also set some $step_old_namespace::* alias here
-// Example: to make the old namespace $step_old_namespace::something point to the new $complete_new_namespace
-// namespace something = $complete_new_namespace
+// Namespace forwarding: solution 2
+// Auto-generated "using" Component
+// This solution looks clearer but could miss other classes declared in ${component}.h
+namespace $last_old_namespace
+{
+using $complete_new_namespace::$component;
+} // namespace $last_old_namespace
 
-%for $namespace in reversed($old_namespace)
+%for $namespace in reversed($old_namespace_copy)
 } // namespace $namespace
 %end for
 

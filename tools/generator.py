@@ -137,7 +137,6 @@ def generateDeprecatedLayout(package_name, package_dir=None, **kwargs):
     # fromFiles = kwargs["src_from"] * kwargs["package_components"]
     for component in kwargs["package_components"]:         
         file = component + ".h"
-        print("file = " + file)
         context["component"] = component
         context["file_include"] = '/'.join(context["new_namespace"]) + '/' + file
         context["file_cname"] = component.upper()
