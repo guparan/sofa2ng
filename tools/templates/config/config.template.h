@@ -1,6 +1,6 @@
 #encoding utf-8
 #compiler-settings
-commentStartToken = //
+commentStartToken = ///
 directiveStartToken = %
 cheetahVarStartToken = autopack::
 #end compiler-settings
