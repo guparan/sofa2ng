@@ -3,12 +3,12 @@
 commentStartToken = //
 cheetahVarStartToken = autopack::
 #end compiler-settings
-#set autopack::dependencies_str = ' '.join(autopack::dependencies)
+#set autopack::dependencies_str = ' '.join(sorted(autopack::dependencies))
 cmake_minimum_required(VERSION 3.1)
 
 project(autopack::package_name VERSION 1.0)
 
-#for depend in autopack::dependency_targets
+#for depend in sorted(autopack::dependency_targets)
 find_package(autopack::depend)
 #end for
 
@@ -16,24 +16,24 @@ set(HEADER_FILES config/${PROJECT_NAME}.h)
 set(SOURCE_FILES config/${PROJECT_NAME}.cpp)
 
 list(APPEND HEADER_FILES
-#for filename in autopack::deprecated_header_files   
+#for filename in sorted(autopack::deprecated_header_files)
     autopack::filename
 #end for
 )
 
 list(APPEND HEADER_FILES
-#for filename in autopack::header_files   
+#for filename in sorted(autopack::header_files)
     autopack::filename
 #end for
 )
 list(APPEND SOURCE_FILES
-#for filename in autopack::source_files 
+#for filename in sorted(autopack::source_files)
     autopack::filename
 #end for
 )
 
 set(EXTRA_FILES
-#for filename in autopack::extra_files
+#for filename in sorted(autopack::extra_files)
     autopack::filename
 #end for
 )

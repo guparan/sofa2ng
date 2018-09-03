@@ -163,7 +163,7 @@ def getDependencyTargets(dependencies, from_root):
                         break # one more target found
             if len(targets) == len(dependencies):
                 break # all targets found
-    return targets
+    return list(set(targets)) # unique list of targets
 
 
 def loadGenerator(generatorfilename):
@@ -235,8 +235,8 @@ def initPackage(package_name, package_dir, package_type="library", **kwargs):
             print("    - create group: " + groupname)
             #generatordir = parentpath + "/" + ".generator"
             #generatorfile = generatordir + "/config.json"
-            os.mkdir(parentpath)
-            #os.mkdir(generatordir)
+            os.makedirs(parentpath)
+            #os.makedirs(generatordir)
             #open(generatorfile, "w").write( json.dumps( emptypackage ) )
             #setProperty(groupname, "package_name", groupname)
             #setProperty(groupname, "package_type", "group")
@@ -244,11 +244,11 @@ def initPackage(package_name, package_dir, package_type="library", **kwargs):
     if pathdec[-1]:
         if not os.path.exists(finalpath):
             print("    - create dir")
-            os.mkdir(finalpath)
+            os.makedirs(finalpath)
         generatordir = finalpath + "/" + ".generator"
         if not os.path.exists(generatordir):
             print("    - create generator dir")
-            os.mkdir(generatordir)
+            os.makedirs(generatordir)
         generatorfile = generatordir + "/config.json"
         print("   - save package description in: " + generatorfile)
         open(generatorfile, "w").write( json.dumps(  emptypackage ) )

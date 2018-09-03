@@ -3,23 +3,23 @@
 commentStartToken = //
 cheetahVarStartToken = autopack::
 #end compiler-settings
-#set autopack::test_dependencies_str = ' '.join(autopack::test_dependencies)
+#set autopack::test_dependencies_str = ' '.join(sorted(autopack::test_dependencies))
 cmake_minimum_required(VERSION 3.1)
 
 project(autopack::{package_name}.test VERSION 1.0)
 
-#for depend in autopack::test_dependency_targets
+#for depend in sorted(autopack::test_dependency_targets)
 find_package(autopack::depend)
 #end for
 
 set(HEADER_FILES
-#for filename in autopack::test_header_files
+#for filename in sorted(autopack::test_header_files)
     autopack::filename
 #end for
 )
 
 set(SOURCE_FILES
-#for filename in autopack::test_source_files
+#for filename in sorted(autopack::test_source_files)
     autopack::filename
 #end for
 )
