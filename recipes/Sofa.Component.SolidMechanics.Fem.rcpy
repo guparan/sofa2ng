@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json, os
+from Cheetah.Template import Template
+import bootstrap
+from constructor import moveCodeAndPatch, patchNamespace, reorderCommands
+
+
+package_dir = to_root + "/Sofa/Component/SolidMechanics/Fem"
+context = {
+                   "from_root" : from_root,
+                    "src_from" : from_root + "/modules/SofaGeneralSimpleFem",
+                "package_name" : "Sofa.Component.SolidMechanics.Fem",
+                "package_type" : "library",
+                "dependencies" : ["SofaBaseTopology", "SofaSimpleFem"],
+                 "package_dir" : package_dir,
+             "package_dir_src" : package_dir + "/src",
+          "package_dir_config" : package_dir + "/config",
+      "package_dir_deprecated" : package_dir + "/deprecated_layout/SofaGeneralSimpleFem",
+                  "recipe_dir" : os.path.dirname(__file__),
+          "package_components" : ["BeamFEMForceField"], # to be completed
+               "old_namespace" : ["sofa", "component", "forcefield"],
+               "new_namespace" : ["sofa", "component", "solidmechanics", "fem"],
+                "header_files" : [], # will be filled by moveCodeAndPatch
+                "source_files" : [], # will be filled by moveCodeAndPatch
+}
+context["package_dir_src_with_namespace"] = context["package_dir_src"] + "/" + '/'.join(context["new_namespace"])
+
+
+def fromFileToFile(file, context):
+    return (
+        context["src_from"] + "/" + file,                    # source
+        context["package_dir_src"] + "/" +                   # destination
+            '/'.join(context["new_namespace"]) + "/" + file
+    )
+
+
+########## INIT ##########
+tasks = []
+tasks += [["generator", "init", context]]
+tasks += [["mkdir", "${package_dir_src_with_namespace}", context]]
+tasks += [["mkdir", "${package_dir_deprecated}", context]]
+tasks += [["mkdir", "${package_dir_config}", context]]
+##########################
+
+
+######## SOURCES #########
+tasks += moveCodeAndPatch(context["package_components"], fromFileToFile, **context) # will set header_files and source_files
+tasks += patchNamespace(context["package_dir_src"], **context)
+tasks += [["replacetext", context["package_dir_src"], "SOFA_GENERAL_SIMPLE_FEM_API", "SOFA_COMPONENT_SOLIDMECHANICS_FEM_API", context]]
+tasks += [["replacetext", context["package_dir_src"], 'include <sofa/helper/helper.h>', 'include <Sofa.Component.SolidMechanics.Fem.h>', context]]
+tasks += [["replacetext", context["package_dir_src"], 'include "config.h"', 'include <Sofa.Component.SolidMechanics.Fem.h>', context]]
+
+tasks += [["generator", "generate-cmakelists", context]]
+tasks += [["generator", "generate-deprecatedlayout", context]]
+##########################
+
+
+######### CONFIG #########
+tasks += [["generator", "generate-configfiles", context]]
+##########################
+
+
+# command = {"commands" : reorderCommands(tasks)}
+command = {"commands" : tasks}
+
+
+
