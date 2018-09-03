@@ -4,7 +4,6 @@ import json, os
 from Cheetah.Template import Template
 import bootstrap
 from constructor import moveCodeAndPatch, patchNamespace, reorderCommands
-from generator import getDependencyTargets
 
 
 package_dir = to_root + "/Sofa/Component/Utils"
