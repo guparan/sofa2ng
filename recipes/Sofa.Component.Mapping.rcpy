@@ -11,7 +11,7 @@ context = {
                    "from_root" : from_root,
                     "src_from" : from_root + "/modules/SofaMiscMapping",
                 "package_name" : "Sofa.Component.Mapping",
-                "package_type" : "library",
+                "package_type" : "plugin",
                 "dependencies" : ["SofaCore", "SofaHelper", "SofaBaseTopology"],
                  "package_dir" : package_dir,
              "package_dir_src" : package_dir + "/src",

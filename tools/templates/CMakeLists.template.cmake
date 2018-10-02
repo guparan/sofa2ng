@@ -12,34 +12,36 @@ project(autopack::package_name VERSION 1.0)
 find_package(autopack::depend)
 #end for
 
-set(HEADER_FILES config/${PROJECT_NAME}.h)
-set(SOURCE_FILES config/${PROJECT_NAME}.cpp)
+file(GLOB CONFIG_FILES
+    config/${PROJECT_NAME}.h
+    config/${PROJECT_NAME}.cpp
+    )
 
-list(APPEND HEADER_FILES
+set(DEPRECATED_HEADER_FILES
 #for filename in sorted(autopack::deprecated_header_files)
     autopack::filename
 #end for
-)
+    )
 
-list(APPEND HEADER_FILES
+set(HEADER_FILES
 #for filename in sorted(autopack::header_files)
     autopack::filename
 #end for
-)
-list(APPEND SOURCE_FILES
+    )
+set(SOURCE_FILES
 #for filename in sorted(autopack::source_files)
     autopack::filename
 #end for
-)
+    )
 
 set(EXTRA_FILES
 #for filename in sorted(autopack::extra_files)
     autopack::filename
 #end for
-)
+    )
 
 #if autopack::package_type == "executable"
-add_autopack::{package_type}(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES} ${EXTRA_FILES})
+add_autopack::{package_type}(${PROJECT_NAME} ${CONFIG_FILES} ${DEPRECATED_HEADER_FILES} ${HEADER_FILES} ${SOURCE_FILES} ${EXTRA_FILES})
 #else
 add_autopack::{package_type}(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${EXTRA_FILES})
 #end if

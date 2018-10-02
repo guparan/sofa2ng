@@ -121,10 +121,11 @@ def generateConfigFiles(package_name, package_dir=None, **kwargs):
     t = Template( open(config_template_h).read(), searchList=[context] )
     theFile.write(str(t))
     
-    # Generate config/PackageName.cpp
-    theFile = open(config_dir + "/" + package_name + ".cpp", "w+")
-    t = Template( open(config_template_cpp).read(), searchList=[context] )
-    theFile.write(str(t))
+    # [Plugins only] Generate config/PackageName.cpp
+    if kwargs["package_type"] == "plugin":
+        theFile = open(config_dir + "/" + package_name + ".cpp", "w+")
+        t = Template( open(config_template_cpp).read(), searchList=[context] )
+        theFile.write(str(t))
     
     
 def generateDeprecatedLayout(package_name, package_dir=None, **kwargs):

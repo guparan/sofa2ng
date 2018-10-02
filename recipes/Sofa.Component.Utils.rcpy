@@ -11,7 +11,7 @@ context = {
                    "from_root" : from_root,
                     "src_from" : from_root + "/SofaKernel/modules/SofaComponentBase",
                 "package_name" : "Sofa.Component.Utils",
-                "package_type" : "library",
+                "package_type" : "plugin",
                 "dependencies" : ["SofaCore"],
                  "package_dir" : package_dir,
              "package_dir_src" : package_dir + "/src",

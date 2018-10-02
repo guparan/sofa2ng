@@ -11,7 +11,7 @@ context = {
                    "from_root" : from_root,
                     "src_from" : from_root + "/modules/SofaGeneralSimpleFem",
                 "package_name" : "Sofa.Component.SolidMechanics.Fem",
-                "package_type" : "library",
+                "package_type" : "plugin",
                 "dependencies" : ["SofaBaseTopology", "SofaSimpleFem"],
                  "package_dir" : package_dir,
              "package_dir_src" : package_dir + "/src",
