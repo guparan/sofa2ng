@@ -43,7 +43,7 @@ set(EXTRA_FILES
 #if autopack::package_type == "executable"
 add_autopack::{package_type}(${PROJECT_NAME} ${CONFIG_FILES} ${DEPRECATED_HEADER_FILES} ${HEADER_FILES} ${SOURCE_FILES} ${EXTRA_FILES})
 #else
-add_autopack::{package_type}(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${EXTRA_FILES})
+add_autopack::{package_type}(${PROJECT_NAME} SHARED ${CONFIG_FILES} ${DEPRECATED_HEADER_FILES} ${HEADER_FILES} ${SOURCE_FILES} ${EXTRA_FILES})
 #end if
 target_link_libraries(${PROJECT_NAME} PUBLIC autopack::{dependencies_str})
 target_compile_definitions(${PROJECT_NAME} PRIVATE "-DBUILD_autopack::package_cname")
