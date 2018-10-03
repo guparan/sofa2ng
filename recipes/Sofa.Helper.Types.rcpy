@@ -16,10 +16,10 @@ context = {
                  "package_dir" : package_dir,
              "package_dir_src" : package_dir + "/src",
           "package_dir_config" : package_dir + "/config",
-      "package_dir_deprecated" : package_dir + "/deprecated_layout/sofa/helper/io/types",
+      "package_dir_deprecated" : package_dir + "/deprecated_layout/sofa/helper",
                   "recipe_dir" : os.path.dirname(__file__),
-          "package_components" : ["fixed_array", "Material", "RGBAColor", "MemoryManager", "OptionsGroup", "Polynomial_LD", "SVector", "accessor", "cast", "config", "deque", "hash", "integer_id", "list", "map", "map_ptr_stable_compare", "pair", "set", "stable_vector", "typeinfos", "vector", "vectorData", "vectorLinks", "vector_algebra" ],
-               "old_namespace" : ["sofa", "helper", "types"],
+          "package_components" : ["SVector", "accessor", "cast", "config", "deque", "hash", "integer_id", "list", "map", "map_ptr_stable_compare", "pair", "set", "stable_vector", "typeinfos", "vector", "vectorData", "vectorLinks", "vector_algebra"], # TODO manually: fixed_array, Material, RGBAColor
+               "old_namespace" : ["sofa", "helper"],
                "new_namespace" : ["sofa", "helper", "types"],
                 "header_files" : [], # will be filled by moveCodeAndPatch
                 "source_files" : [], # will be filled by moveCodeAndPatch
