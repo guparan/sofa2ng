@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json, os
+from Cheetah.Template import Template
+import bootstrap
+from constructor import moveCodeAndPatch, patchNamespace, reorderCommands
+
+
+package_dir = to_root + "/Sofa/Helper/Types"
+context = {
+                   "from_root" : from_root,
+                    "src_from" : from_root + "/SofaKernel/framework/sofa/helper",
+                "package_name" : "Sofa.Helper.Types",
+                "package_type" : "library",
+                "dependencies" : [],
+                 "package_dir" : package_dir,
+             "package_dir_src" : package_dir + "/src",
+          "package_dir_config" : package_dir + "/config",
+      "package_dir_deprecated" : package_dir + "/deprecated_layout/sofa/helper/io/types",
+                  "recipe_dir" : os.path.dirname(__file__),
+          "package_components" : ["fixed_array", "Material", "RGBAColor", "MemoryManager", "OptionsGroup", "Polynomial_LD", "SVector", "accessor", "cast", "config", "deque", "hash", "integer_id", "list", "map", "map_ptr_stable_compare", "pair", "set", "stable_vector", "typeinfos", "vector", "vectorData", "vectorLinks", "vector_algebra" ],
+               "old_namespace" : ["sofa", "helper", "types"],
+               "new_namespace" : ["sofa", "helper", "types"],
+                "header_files" : [], # will be filled by moveCodeAndPatch
+                "source_files" : [], # will be filled by moveCodeAndPatch
+               
+            "test_package_dir" : package_dir + "/tests",
+                   "test_from" : from_root + "/SofaKernel/framework/framework_test/helper",
+             "test_components" : ["Color_test", "Material_test", "vector_test"],
+           "test_dependencies" : [],
+           "test_header_files" : [], # will be filled by moveCodeAndPatch
+           "test_source_files" : [], # will be filled by moveCodeAndPatch
+}
+context["package_dir_src_with_namespace"] = context["package_dir_src"] + "/" + '/'.join(context["new_namespace"])
+
+
+########### INIT ############
+tasks = []
+tasks += [["generator", "init", context]]
+tasks += [["mkdir", "${package_dir_src_with_namespace}", context]]
+tasks += [["mkdir", "${package_dir_deprecated}", context]]
+tasks += [["mkdir", "${package_dir_config}", context]]
+##########################
+
+
+######## SOURCES #########
+tasks += moveCodeAndPatch(context["package_components"], **context) # will set header_files and source_files
+tasks += patchNamespace(context["package_dir_src"], **context)
+tasks += [["replacetext", context["package_dir_src"], "SOFA_HELPER_API", "SOFA_HELPER_TYPES_API", context]]
+tasks += [["replacetext", context["package_dir_src"], "include <sofa/helper/helper.h>", "include <Sofa.Helper.Types.h>", context]]
+tasks += [["replacetext", context["package_dir_src"], "include <sofa/core/core.h>", "include <Sofa.Helper.Types.h>", context]]
+
+tasks += [["generator", "generate-cmakelists", context]]
+tasks += [["generator", "generate-deprecatedlayout", context]]
+##########################
+
+
+######### TESTS ##########
+tasks += [["mkdir", "${test_package_dir}", context]]
+tasks += moveCodeAndPatch(context["test_components"], True, **context) # will set test_header_files and test_source_files
+tasks += patchNamespace(context["test_package_dir"], **context)
+tasks += [["generator", "generate-cmakelists-tests", context]]
+##########################
+
+
+######### CONFIG #########
+tasks += [["generator", "generate-configfiles", context]]
+##########################
+
+
+# command = {"commands" : reorderCommands(tasks)}
+command = {"commands" : tasks}
+
+
+
