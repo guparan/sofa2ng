@@ -34,20 +34,6 @@ context = {
 context["package_dir_src_with_namespace"] = context["package_dir_src"] + "/" + '/'.join(context["new_namespace"])
 
 
-def fromFileToFile(file, context):
-    return (
-        context["src_from"] + "/" + file,                    # source
-        context["package_dir_src"] + "/" +                   # destination
-            '/'.join(context["new_namespace"]) + "/" + file
-    )
-
-def fromFileToFile_test(file, context):
-    return (
-        context["test_from"] + "/" + file,          # source
-        context["test_package_dir"] + "/" + file    # destination
-    )
-
-
 ########### INIT ############
 tasks = []
 
@@ -55,13 +41,12 @@ tasks += [["generator", "init", context]]
 
 tasks += [["mkdir", "${package_dir_src_with_namespace}", context]]
 tasks += [["mkdir", "${package_dir_deprecated}", context]]
-tasks += [["mkdir", "${test_package_dir}", context]]
 tasks += [["mkdir", "${package_dir_config}", context]]
 ##########################
 
 
 ######## SOURCES #########
-tasks += moveCodeAndPatch(context["package_components"], fromFileToFile, **context) # will set header_files and source_files
+tasks += moveCodeAndPatch(context["package_components"], **context) # will set header_files and source_files
 tasks += patchNamespace(context["package_dir_src"], **context)
 
 # dirty patch to correct file name that does not follow conventions
@@ -83,8 +68,8 @@ tasks += [["generator", "generate-cmakelists", context]]
 
 
 ######### TESTS ##########
-# reset properties for new CMakeLists generation
-tasks += moveCodeAndPatch(context["test_components"], fromFileToFile_test, **context) # will set test_header_files and test_source_files
+tasks += [["mkdir", "${test_package_dir}", context]]
+tasks += moveCodeAndPatch(context["test_components"], True, **context) # will set test_header_files and test_source_files
 tasks += patchNamespace(context["test_package_dir"], **context)
 tasks += [["generator", "generate-cmakelists-tests", context]]
 ##########################
@@ -94,7 +79,6 @@ tasks += [["generator", "generate-cmakelists-tests", context]]
 tasks += [["generator", "generate-configfiles", context]]
 ##########################
 
-# command = {"commands" : reorderCommands(tasks)}
 command = {"commands" : tasks}
 
 

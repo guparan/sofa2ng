@@ -27,14 +27,6 @@ context = {
 context["package_dir_src_with_namespace"] = context["package_dir_src"] + "/" + '/'.join(context["new_namespace"])
 
 
-def fromFileToFile(file, context):
-    return (
-        context["src_from"] + "/" + file,                    # source
-        context["package_dir_src"] + "/" +                   # destination
-            '/'.join(context["new_namespace"]) + "/" + file
-    )
-
-
 ########## INIT ##########
 tasks = []
 tasks += [["generator", "init", context]]
@@ -45,7 +37,7 @@ tasks += [["mkdir", "${package_dir_config}", context]]
 
 
 ######## SOURCES #########
-tasks += moveCodeAndPatch(context["package_components"], fromFileToFile, **context) # will set header_files and source_files
+tasks += moveCodeAndPatch(context["package_components"], **context) # will set header_files and source_files
 tasks += patchNamespace(context["package_dir_src"], **context)
 tasks += [["replacetext", context["package_dir_src"], "SOFA_GENERAL_SIMPLE_FEM_API", "SOFA_COMPONENT_SOLIDMECHANICS_FEM_API", context]]
 tasks += [["replacetext", context["package_dir_src"], 'include <sofa/helper/helper.h>', 'include <Sofa.Component.SolidMechanics.Fem.h>', context]]

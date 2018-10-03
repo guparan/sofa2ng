@@ -7,9 +7,15 @@ import shutil
 import inspect
 from Cheetah.Template import Template
 import generator
+import fnmatch
+import sys
 
+removeFiles = False
 
-def runRefactoring(actions):
+def runRefactoring(actions, simulate):
+    global removeFiles
+    removeFiles = ( simulate == "false" )
+    
     if isinstance(actions, str):
         actions = json.loads( open(filename).read() )
 
@@ -33,7 +39,7 @@ def runRefactoring(actions):
         execute(command, *args, **context)
 
 
-def moveCodeAndPatch(filenames, fromFileToFile, forward=None, **kwargs):
+def moveCodeAndPatch(filenames, movingTests=False, **kwargs):
     if isinstance(filenames, str):
         filenames = [filename]
 
@@ -44,25 +50,44 @@ def moveCodeAndPatch(filenames, fromFileToFile, forward=None, **kwargs):
 
     for filename in filenames:
         # ext = os.path.splitext(filename)[1]
-        srcfilename,dstfilename = fromFileToFile(filename, kwargs)
-        for srcfile in glob.glob(srcfilename + ".*"):
+        # srcfilename,dstfilename = fromFileToFile(filename, kwargs)
+        if movingTests:
+            dstfilename = kwargs["test_package_dir"] + "/" + filename
+            sourcedir = kwargs["test_from"]
+        else:
+            dstfilename = kwargs["package_dir_src"] + "/" + '/'.join(kwargs["new_namespace"]) + "/" + filename
+            sourcedir = kwargs["src_from"]
+                
+        matches = []
+        filname_matches = []
+        for (root, dirnames, src_filenames) in os.walk( sourcedir ):
+            for match_filename in fnmatch.filter(src_filenames, filename + ".*"):
+                matches.append(os.path.join(root, match_filename))
+                filname_matches.append(match_filename)
+        
+        if len(matches) == 0 :
+            print("WARNING: no match for " + filename + " in " + sourcedir + " (recursive search).")
+        elif len(filname_matches) != len(set(filname_matches)) :
+            print("WARNING: multiple matches for " + filename + " in " + sourcedir + " (recursive search).")
+        else :
+            srcfile = matches[0]
             ext = os.path.splitext(srcfile)[1]
             dstfile = dstfilename + ext
-            if dstfilename.startswith(kwargs["package_dir_src"]):
-                r = os.path.commonprefix([dstfile + "/", kwargs["package_dir"] + "/"])
-            elif dstfilename.startswith(kwargs["test_package_dir"]):
+            if movingTests:
                 r = os.path.commonprefix([dstfile + "/", kwargs["test_package_dir"] + "/"])
+            else:
+                r = os.path.commonprefix([dstfile + "/", kwargs["package_dir"] + "/"])
             dstrelativefilename = dstfile[len(r):]
             
             tasks.append(["move", srcfile, dstfile])
-            # tasks.append(["rm", srcfile])
-            if dstfilename.startswith(kwargs["package_dir_src"]):
-                tasks.append(["generator", "add-to-property", extToCmakeProperty[ext], dstrelativefilename, kwargs])
-            elif dstfilename.startswith(kwargs["test_package_dir"]):
+            tasks.append(["rm", srcfile])
+            if movingTests:
                 tasks.append(["generator", "add-to-property", extToCmakeProperty_test[ext], dstrelativefilename, kwargs])
+            else:
+                tasks.append(["generator", "add-to-property", extToCmakeProperty[ext], dstrelativefilename, kwargs])
         
-        deprecated_prefix = kwargs["package_dir_deprecated"].replace(kwargs["package_dir"] + "/", "")
-        tasks.append(["generator", "add-to-property", "deprecated_header_files", deprecated_prefix + "/" + filename + ".h", kwargs])
+            deprecated_prefix = kwargs["package_dir_deprecated"].replace(kwargs["package_dir"] + "/", "")
+            tasks.append(["generator", "add-to-property", "deprecated_header_files", deprecated_prefix + "/" + filename + ".h", kwargs])
     return tasks
 
     
@@ -244,10 +269,11 @@ def moveCmd(sourcefile, destfile, **kwargs):
 
 
 def rmCmd(path, **kwargs):
-    try:
-        os.remove(path)
-    except OSError:
-        os.rmdir(path)
+    if removeFiles:
+        try:
+            os.remove(path)
+        except OSError:
+            os.rmdir(path)
 
 
 def fixheaderCmd(cmd):
